@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.2)  24 NOV 2023 00:09
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023) (preloaded format=pdflatex 2023.11.2)  26 NOV 2023 01:03
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -541,46 +541,133 @@ pdfTeX warning (ext4): destination with the same identifier (name{page.}) has be
 l.543 T
        he mice::ampute function is crucial because it enables researchers to [8]
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <12> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 556.
-LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 565.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 555.
+<Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-1.pdf, id=80, 469.755pt x 325.215pt>
+File: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-1.pdf Graphic file (type pdf)
+<use Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-1.pdf>
+Package pdftex.def Info: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-1.pdf  used on input line 567.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.569 \begin{Shaded}
+                     [9 <./Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-1.pdf>]
+<Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-2.pdf, id=92, 469.755pt x 325.215pt>
+File: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-2.pdf Graphic file (type pdf)
+<use Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-2.pdf>
+Package pdftex.def Info: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-2.pdf  used on input line 579.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.609 \end{verbatim}
+                     [10 <./Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-2.pdf>]
+LaTeX Font Info:    Trying to load font information for TS1+lmtt on input line 609.
 (c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/tex/latex/lm/ts1lmtt.fd
 File: ts1lmtt.fd 2015/05/01 v1.6.1 Font defs for Latin Modern
 )
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.687 \end{verbatim}
-                     [9]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.687 \end{verbatim}
-                     [10]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.687 \end{verbatim}
+l.741 \end{verbatim}
                      [11]
-Overfull \vbox (0.44629pt too high) detected at line 724
- []
-
-
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.724 \end{Shaded}
-                   [12]
-Overfull \hbox (61.44128pt too wide) in paragraph at lines 785--785
-[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.4 seconds.[] 
- []
-
-
+l.741 \end{verbatim}
+                     [12]
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.785 \end{verbatim}
+l.741 \end{verbatim}
                      [13]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 785--785
+Overfull \vbox (0.44629pt too high) detected at line 778
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.778 \end{Shaded}
+                   [14]
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 839--839
+[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.37 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.839 \end{verbatim}
+                     [15]
+Overfull \hbox (61.44128pt too wide) in paragraph at lines 839--839
+[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.1 seconds.[] 
+ []
+
+
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 897--897
+[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.51 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.897 \end{verbatim}
+                     [16]
+Overfull \hbox (67.60928pt too wide) in paragraph at lines 897--897
+[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.09 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.897 \end{verbatim}
+                     [17]
+Overfull \hbox (67.60928pt too wide) in paragraph at lines 955--955
+[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.39 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.955 \end{verbatim}
+                     [18]
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 955--955
+[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.[] 
+ []
+
+
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 1013--1013
+[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.54 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.1013 \end{verbatim}
+                      [19]
+Overfull \hbox (61.44128pt too wide) in paragraph at lines 1013--1013
+[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.1 seconds.[] 
+ []
+
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.1013 \end{verbatim}
+                      [20]
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 1071--1071
+[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.41 seconds.[] 
+ []
+
+
+Overfull \hbox (67.61629pt too wide) in paragraph at lines 1071--1071
 []\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.08 seconds.[] 
  []
 
@@ -588,109 +675,60 @@ Overfull \hbox (67.61629pt too wide) in paragraph at lines 785--785
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.843 \end{verbatim}
-                     [14]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 843--843
-[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.43 seconds.[] 
- []
+l.1071 \end{verbatim}
+                      [21]
+<Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-3.pdf, id=139, 469.755pt x 325.215pt>
+File: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-3.pdf Graphic file (type pdf)
+<use Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-3.pdf>
+Package pdftex.def Info: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-3.pdf  used on input line 1093.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.1095 \begin{Shaded}
+                      [22]
+<Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-4.pdf, id=143, 469.755pt x 325.215pt>
+File: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-4.pdf Graphic file (type pdf)
+<use Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-4.pdf>
+Package pdftex.def Info: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-4.pdf  used on input line 1103.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
 
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 843--843
-[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.18 seconds.[] 
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.1105 \begin{Shaded}
+                      [23 <./Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-3.pdf>]
+<Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-5.pdf, id=153, 469.755pt x 325.215pt>
+File: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-5.pdf Graphic file (type pdf)
+<use Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-5.pdf>
+Package pdftex.def Info: Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-5.pdf  used on input line 1113.
+(pdftex.def)             Requested size: 469.75386pt x 325.2142pt.
+
+pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
+<to be read again> 
+                   \relax 
+l.1115 \begin{Shaded}
+                      [24 <./Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-4.pdf>]
+Underfull \vbox (badness 10000) detected at line 1174
  []
 
 
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.843 \end{verbatim}
-                     [15]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 901--901
-[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.48 seconds.[] 
- []
-
-
+l.1174 \end{Shaded}
+                    [25 <./Math538_FINAL_EV_PL_files/figure-latex/unnamed-chunk-1-5.pdf>]
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.901 \end{verbatim}
-                     [16]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 901--901
-[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.43 seconds.[] 
- []
-
-
-Overfull \hbox (67.60928pt too wide) in paragraph at lines 959--959
-[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.65 seconds.[] 
- []
-
-
+l.1180 \end{verbatim}
+                      [26]
 pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
 <to be read again> 
                    \relax 
-l.959 \end{verbatim}
-                     [17]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 959--959
-[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.15 seconds.[] 
- []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.959 \end{verbatim}
-                     [18]
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 1017--1017
-[]\T1/lmtt/m/n/12 ## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 0.53 seconds.[] 
- []
-
-
-Overfull \hbox (67.61629pt too wide) in paragraph at lines 1017--1017
-[]\T1/lmtt/m/n/12 ## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 0.43 seconds.[] 
- []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.1017 \end{verbatim}
-                      [19]
-Underfull \vbox (badness 10000) detected at line 1078
- []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.1078 \end{Shaded}
-                    [20]
-Underfull \vbox (badness 10000) detected at line 1078
- []
-
-
-Underfull \vbox (badness 10000) detected at line 1078
- []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.1078 \end{Shaded}
-                    [21]
-Underfull \vbox (badness 10000) detected at line 1127
- []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.1127 \end{Shaded}
-                    [22]
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.1155 \end{document}
-                      [23] 
+l.1208 \end{document}
+                      [27] 
 enddocument/afterlastpage: lastpage setting LastPage.
 (./Math538_FINAL_EV_PL.aux)
  ***********
@@ -705,18 +743,18 @@ Package rerunfilecheck Info: File `Math538_FINAL_EV_PL.out' has not changed.
 ### semi simple group (level 1) entered at line 101 (\begingroup)
 ### bottom level 
 Here is how much of TeX's memory you used:
- 12490 strings out of 476231
- 194550 string characters out of 5795160
- 1935533 words of memory out of 5000000
- 34195 multiletter control sequences out of 15000+600000
+ 12525 strings out of 476231
+ 197010 string characters out of 5795160
+ 1934533 words of memory out of 5000000
+ 34230 multiletter control sequences out of 15000+600000
  597321 words of font info for 68 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 70i,6n,67p,524b,8347s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 70i,6n,67p,524b,8349s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmbx12.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi12.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmmi8.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr12.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmr8.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy10.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmsy8.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtk10.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtt12.pfb><c:/Users/niklo/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/lm/lmtti10.pfb>
-Output written on Math538_FINAL_EV_PL.pdf (23 pages, 250769 bytes).
+Output written on Math538_FINAL_EV_PL.pdf (27 pages, 286338 bytes).
 PDF statistics:
- 201 PDF objects out of 1000 (max. 8388607)
- 148 compressed objects within 2 object streams
+ 249 PDF objects out of 1000 (max. 8388607)
+ 182 compressed objects within 2 object streams
  21 named destinations out of 1000 (max. 500000)
- 62 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 87 words of extra memory for PDF output out of 10000 (max. 10000000)
 

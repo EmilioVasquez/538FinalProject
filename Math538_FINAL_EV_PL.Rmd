@@ -284,14 +284,30 @@ The brm function is central to the Bayesian approach, as it fits a model within 
 
 ```{r}
 
+set.seed(555)
 # Get Apple stock data
 stocks <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
+
+# Calculate raw returns
+returns =diff(log(stocks$close))
+
+# Plot time series  
+plot(returns, type="l", main="Raw Apple Returns")
+
+# Calculate autocorrelations
+acf_returns = acf(returns, lag.max=5, plot=FALSE) 
+
+# Plot ACF
+plot(acf_returns, main="ACF Plot of Raw Returns")
+
+# OLS model
+fit_ols <- lm(returns ~ lag(returns,1))
+summary(fit_ols)
 
 # Select multiple columns for the amputation process
 stocks_for_ampute <- stocks[, c("close", "volume")]
 
 # Introduce missing values
-set.seed(555)
 amputed_data <- mice::ampute(stocks_for_ampute, prop = 0.3, mech = "MAR")
 
 # Update the stocks with the amputed data for 'close'
@@ -340,6 +356,21 @@ for (i in seq_along(imp_datasets)) {
   fits[[i]] <- fit
 }
 
+
+# Extract posterior samples for the first fitted model
+post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_return", "sigma"))
+
+# Histogram for the Intercept
+hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of Intercept", 
+     xlab = "Intercept", col = "blue")
+
+# Histogram for lagged_return
+hist(post_samples$b_lagged_return, breaks = 30, main = "Posterior of lagged_return", 
+     xlab = "lagged_return", col = "green")
+
+# Histogram for sigma
+hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", 
+     xlab = "Sigma", col = "red")
 
 # Initialize lists to store parameter estimates and standard errors
 param_estimates <- list()
@@ -400,49 +431,6 @@ print(combined_results)
 
 
 
-
-```
-
-```{r, eval=FALSE}
-# PLOT CODE WORKS BUT THE PLOTS ARE CRAP FOR NOW
-
-# Create a sequence of x values for the density plots
-x_intercept <- seq(min(unlist(param_estimates[[1]])) - 3 * max(unlist(param_se[[1]])), 
-                   max(unlist(param_estimates[[1]])) + 3 * max(unlist(param_se[[1]])), length.out = 200)
-x_slope <- seq(min(unlist(param_estimates[[2]])) - 3 * max(unlist(param_se[[2]])), 
-               max(unlist(param_estimates[[2]])) + 3 * max(unlist(param_se[[2]])), length.out = 200)
-
-# Function to generate the density data
-generate_density_data <- function(estimates, ses, x_values) {
-  densities <- mapply(function(estimate, se) {
-    dnorm(x_values, mean = estimate, sd = se)
-  }, estimate = estimates, se = ses)
-  
-  mean_densities <- colMeans(densities)
-  data.frame(x = x_values, y = mean_densities)
-}
-
-# Generate the density data
-density_data_intercept <- generate_density_data(unlist(param_estimates[[1]]), unlist(param_se[[1]]), x_intercept)
-density_data_slope <- generate_density_data(unlist(param_estimates[[2]]), unlist(param_se[[2]]), x_slope)
-
-# Plot the density for the Intercept
-print(
-  ggplot(density_data_intercept, aes(x, y)) +
-  geom_line() +
-  ggtitle("Density of Intercept Estimates") +
-  xlab("Intercept Estimate") + ylab("Density")
-)
-
-# Plot the density for the Slope
-
-print(
-  ggplot(density_data_slope, aes(x, y)) +
-  geom_line() +
-  ggtitle("Density of Slope Estimates") +
-  xlab("Slope Estimate") + ylab("Density")
-)
-
 ```
 
 
@@ -460,5 +448,5 @@ used in your written report.
 
 1. Lai, Mark. 2019. "Course Handouts for Bayesian Data Analysis Class." Class handouts, December 13, 2019. https://bookdown.org/marklhc/notes_bookdown/missing-data.html
 
-2. Little, Roderick. 2011. "Calibrated Bayes, for Statistics in General, and Missing Data in Particular1." Statistical Science 26 (2): 162–74. https://doi.org/10.1214/10-STS318.
+2. Little, Roderick. 2011. "Calibrated Bayes, for Statistics in General, and Missing Data in Particular." Statistical Science 26 (2): 162–74. https://doi.org/10.1214/10-STS318.
 
