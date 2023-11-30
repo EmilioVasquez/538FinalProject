@@ -119,7 +119,7 @@ Missing data is an unavoidable issue that arises in many real-world datasets acr
 
 In the Bayesian approach to multiple imputation, prior distributions are specified for the model parameters and missing data, representing our beliefs before seeing the data. The posterior distributions of the parameters and missing values are estimated by fitting the model to the observed data using Markov chain Monte Carlo (MCMC) methods. This allows simulating multiple imputed datasets by drawing missing values from their posterior predictive distributions. The completed datasets can then be analyzed using standard complete-data methods, with final estimates pooled across the imputed datasets to incorporate missing data uncertainty. Bayesian multiple imputation provides a flexible framework for handling missing data while properly representing imputation uncertainty.
 
-A key advantage of the Bayesian approach to multiple imputation is that it allows incorporating appropriate prior information and modeling complex relationships between variables. For example, hierarchical priors can be used to share information between related parameters or models, improving estimates for variables with limited data. Bayesian models like mixtures and nonparametric models provide flexibility to adapt to complex patterns in the data. MCMC provides a convenient computational approach for fitting Bayesian models with missing data, avoiding analytical intractability. The posterior predictive distribution for the missing values conditions on both the observed data and model parameters, ensuring proper imputation uncertainty. Practical implementations utilize packages like mice in R and mi in Python, which automate iterative Bayesian modeling, imputation, and analysis. Overall, Bayesian multiple imputation provides a robust approach for handling missing data that accounts for uncertainty and allows incorporating flexible modeling and prior information about the data structure.
+A key advantage of the Bayesian approach to multiple imputation is that it allows incorporating appropriate prior information and modeling complex relationships between variables. For example, hierarchical priors can be used to share information between related parameters or models, improving estimates for variables with limited data. Bayesian models like mixtures and nonparametric models provide flexibility to adapt to complex patterns in the data. MCMC provides a convenient computational approach for fitting Bayesian models with missing data, avoiding analytical intractability. The posterior predictive distribution for the missing values conditions on both the observed data and model parameters, ensuring proper imputation uncertainty. Practical implementations utilize packages like `mice` in R and `miceforest` in Python, which automate iterative Bayesian modeling, imputation, and analysis. Overall, Bayesian multiple imputation provides a robust approach for handling missing data that accounts for uncertainty and allows incorporating flexible modeling and prior information about the data structure.
 
 \newpage
 
@@ -170,15 +170,15 @@ In addition, we have missingness indicator variables R for each observation, whe
 
 The priors on the parameters $\beta_0, \beta_1, \beta_2, \text{ and } \sigma$ are weakly informative normals or half-normals:
 
-$$\beta_0 \sim N(0, 10)$$
+$$\beta_0 \sim N(0, a_1)$$
 
-$$\beta_1 \sim N(0, 2)$$
+$$\beta_1 \sim N(0, a_2)$$
 
-$$\beta_2 \sim N(0, 2)$$
+$$\beta_2 \sim N(0, a_3)$$
 
-$$\sigma \sim HalfNormal(0, 10)$$
+$$\sigma \sim HalfNormal(0, c)$$
 
-For the missing Y values, we treat them as parameters to be estimated, with priors based on the observed data likelihood:
+Where $a_1, a_2, a_3,...,c$ are constants.  For the missing Y values, we treat them as parameters to be estimated, with priors based on the observed data likelihood:
 
 $$Y_{miss} \sim N(\mu, \sigma)$$
 
@@ -193,17 +193,17 @@ In summary, the model leverages Bayesian regression, weakly informative priors, 
 
 The model being fit in this analysis is a Bayesian linear regression model with time-series data. The formula for the model is:
 
-$$return_t = \beta_0 + \beta_1 laggedreturn_{t-1} + \epsilon_t$$
+$$r_t = \beta_0 + \beta_1 r_{t-1} + \epsilon_t$$
 
-* $return_t$ is the dependent variable, representing the log return of the AAPL stock on day t.  It is calculated as the difference in the logarithm of the closing prices between two consecutive days, i.e., log($close_t$) - log($close_{t-1}$).
+* $r_t$ is the dependent variable, representing the log return of the AAPL stock on day t.  It is calculated as the difference in the logarithm of the closing prices between two consecutive days, i.e., log($close_t$) - log($close_{t-1}$).
 
-* $laggedreturn_{t-1}$ is the independent variable, which is the log return of the AAPL stock on the previous day t-1.
+* $r_{t-1}$ is the independent variable, which is the log return of the AAPL stock on the previous day t-1.
 
-* $\beta_0$ is the intercept of the regression line, which represents the expected value of $return_t$, when $laggedreturn_{t-1}$ is zero.
+* $\beta_0$ is the intercept of the regression line, which represents the expected value of $r_t$, when $r_{t-1}$ is zero.
 
-* $\beta_1$ is the slope coefficient, indicating how much $return_t$ is expected to increase when $laggedreturn_{t-1}$ increases by one unit.
+* $\beta_1$ is the slope coefficient, indicating how much $r_t$ is expected to increase when $r_{t-1}$ increases by one unit.
 
-* $\epsilon_t$ is the error term, which accounts for the variability in $return_t$ that is not explained by $laggedreturn_{t-1}$.
+* $\epsilon_t$ is the error term, which accounts for the variability in $return_t$ that is not explained by $r_{t-1}$.
 
 The Bayesian aspect of this model comes from the use of priors and the Bayesian inference process. Instead of just finding point estimates for $\beta_0$ and $\beta_1$ as in classical regression, the Bayesian approach estimates the entire posterior distributions for these parameters based on the prior distributions and the observed data.
 
@@ -223,7 +223,7 @@ stocks <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
 stocks <- stocks[stocks$date <= as.Date('2023-11-17'),]
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 ################################################################################
 # Helper functions
 ################################################################################
@@ -245,7 +245,7 @@ ts_line <- function(df, xval, yval, title ='',  ylab = ''){
 
 ### Examining APPL
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning=FALSE, message=FALSE}
 
 library(ggplot2)
 
@@ -326,7 +326,7 @@ stocks <- as.data.frame(stocks)
 ts_line(stocks, "date", "close", title = 'Apple Stock since January 2, 2013 - (30% Missing Data)', ylab = 'Price (Close)')
 ```
 
-$$\textbf{Figure X.}\text{ Visualization of the amputated data}  $$
+$$\textbf{Figure X.}\text{ Visualization of the amputated data} $$
 In the above figure, one can visually see how mice amputated the data. Although it could be hard to see due to the visualization, it appears there is a sizable gap in data a few months prior to the year 2021.
 
 * New variables 'return' and 'lagged_return' are calculated using the `dplyr` package. These represent the daily returns of the stock and the previous day's return, respectively. `The na.omit` function removes any rows with missing values which can't be used in the subsequent regression analysis.
@@ -343,14 +343,14 @@ stocks <- stocks %>%
 
 ## Data Imputation
 
-The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 5) to account for the uncertainty of the imputation process.
+The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 10) to account for the uncertainty of the imputation process.
 
 ```{r}
 # Impute missing values using Predictive Mean Matching
-imputed <- mice(data = stocks, m = 5, maxit = 20, method = 'pmm', seed = 123)
+imputed <- mice(data = stocks, m = 10, maxit = 30, method = 'pmm', seed = 555)
 
 # Extract imputed datasets
-imp_datasets <- lapply(1:5, function(i) complete(imputed, i))
+imp_datasets <- lapply(1:10, function(i) complete(imputed, i))
 ```
 
 The PMM Process for this mice (Multivariate Imputation by Chained Equations) function works as follows:
@@ -363,8 +363,7 @@ ii) For a missing $Y_i$, we find the set of cases(called donors in the package) 
 
 iii) We now randomly select a $Y_d$ from $D_i$ to impute $Y_i$. We have the option to do a straight imputation, or we can choose n of them and take an average. In our case we did straight imputation, and the selection from this set D gives each candidate an equal chance of being selected. From what we could gather from the documentation this probability process was akin to a uniform probability distribution over the pool of potential donors. 
 
-This PMM method is a standalone, non-Bayesian imputation method.  The imputed datasets generated
-are then used further using Bayesian methods in this project.  By creating multiple imputations (m = 5), `mice` acknowledges and represents the uncertainty inherent in the imputation process.
+This PMM method is a standalone, non-Bayesian imputation method.  The imputed datasets generated are then used further using Bayesian methods in this project.  By creating multiple imputations (m = 10), `mice` acknowledges and represents the uncertainty inherent in the imputation process.
 
 
 ## Bayesian Regression Model
@@ -395,7 +394,7 @@ The posterior distribution combines the prior distribution with the likelihood o
 
 ```{r}
 # Initialize an empty list to store the models
-fits <- vector("list", length = 5)
+fits <- vector("list", length = 10)
 
 # Fit a Bayesian regression model to each imputed dataset and check for errors
 for (i in seq_along(imp_datasets)) {
@@ -493,8 +492,6 @@ print(combined_results)
 
 
 
-
-
 ## Combining of Model Results
 
 * Parameter estimates and standard errors are extracted from each fitted model.  These estimates are combined by calculating the mean estimate and pooled standard error for each parameter across all imputed datasets.
@@ -517,6 +514,11 @@ The brm function is central to the Bayesian approach, as it fits a model within 
 Conclusion: Recap you topic and provide discussion on relevant points from
 your presentation. Perhaps motivate an extension or different application to
 which your Model/Process could be utilized.
+
+
+This analysis demonstrated a Bayesian approach for handling missing data, specifically using multiple imputation to fill gaps while quantifying uncertainty. The mice R package enabled missing data simulation on the AAPL stock dataset. Five imputed complete datasets were then generated using predictive mean matching. Bayesian regression models were fitted to predict daily returns based on prior day returns, combining prior beliefs about the coefficients with likelihood from the observed data to estimate posterior distributions. Hamilton Monte Carlo sampling enabled convenient fitting of the posteriors. Parameter estimates were finally pooled across the multiple imputations to obtain overall inference, incorporating missing data uncertainty.
+
+The multi-step process provides a blueprint for principled missing data handling - imputing while preserving relationships in the data, fitting appropriate Bayesian models, and aggregating estimates for final inference. The methodology can generalize across applications with missing observations, from financial time series forecasting to political polls, epidemiology, econometrics, or climate data analysis. Missingness often arises when merging multiple datasets as well. The multiple imputation framework allows proceeding with modeling and prevents relying only on complete cases. The Bayesian approach allows flexible incorporation of complex relationships and prior knowledge to strengthen imputations and parameter estimates despite gaps. Use of MCMC sampling handles high-dimensional posteriors despite analytic intractability. Thus Bayesian missing data techniques serve as broadly applicable tools for overcoming an omnipresent analysis challenge to enable robust modeling from incomplete real-world data.
 
 # Reference
 
