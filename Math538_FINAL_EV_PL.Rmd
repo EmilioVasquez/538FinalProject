@@ -213,7 +213,7 @@ Below are the steps taken for this analysis:
 
 The `tq_get` function from the `tidyquant` package retrieves historical stock price data for AAPL from an online source.
 
-```{r}
+```{r data-read}
 set.seed(555)
 
 # Get Apple stock data
@@ -223,7 +223,7 @@ stocks <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
 stocks <- stocks[stocks$date <= as.Date('2023-11-17'),]
 ```
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, helper-function, echo = FALSE, warning=FALSE, message=FALSE}
 ################################################################################
 # Helper functions
 ################################################################################
@@ -238,6 +238,15 @@ ts_line <- function(df, xval, yval, title ='',  ylab = ''){
   return(p)
 }
 
+
+hist_gg <- function(data, x_var, title = "Histogram", x_axis_label = "X Axis") {
+  plt <- ggplot(data = data, aes(x = {{x_var}})) +
+    geom_density() +
+    ggtitle(title) +
+    xlab(x_axis_label) + 
+    theme_bw()
+  return(plt)
+}
 ```
 
 
@@ -245,7 +254,7 @@ ts_line <- function(df, xval, yval, title ='',  ylab = ''){
 
 ### Examining APPL
 
-```{r, echo = FALSE, warning=FALSE, message=FALSE}
+```{r, appl_ts_complete_data, echo = FALSE, warning=FALSE, message=FALSE}
 
 library(ggplot2)
 
@@ -272,7 +281,7 @@ During this time frame, the stock split twice. The first occurred on June 9, 201
 
 ### ACF Plots
 
-```{r, echo = FALSE}
+```{r, ACF_plt ,  echo = FALSE}
 # Calculate raw returns
 returns =diff(log(stocks$close))
 
@@ -287,15 +296,6 @@ plot(acf_returns, main="ACF Plot of Raw Returns")
 ```
 
 
-### Fitting an OLS Model
-
-```{r}
-# OLS model
-fit_ols <- lm(returns ~ lag(returns,1))
-summary(fit_ols)
-
-```
-
 ##  Data Amputation Prep and Procedure
 
 * A subset of the retrieved data is selected, focusing on the 'close' (closing price) and 'volume' (number of shares traded) columns.
@@ -304,7 +304,7 @@ summary(fit_ols)
 
 The mice::ampute function artificially introduces missing values into the dataset to simulate incomplete data, which is common in real-world scenarios. The prop argument specifies the proportion of data to be made missing, and the mech argument specifies the missingness mechanism as 'MAR' (Missing At Random).
 
-```{r}
+```{r, amputation}
 # Select multiple columns for the amputation process
 stocks_for_ampute <- stocks[, c("close", "volume")]
 
@@ -322,7 +322,7 @@ stocks <- as.data.frame(stocks)
 
 * The stocks dataframe is updated with the amputed 'close' prices.
 
-```{r, echo = FALSE, message= FALSE}
+```{r, amputated_EDA, echo = FALSE, message= FALSE}
 ts_line(stocks, "date", "close", title = 'Apple Stock since January 2, 2013 - (30% Missing Data)', ylab = 'Price (Close)')
 ```
 
@@ -331,7 +331,7 @@ In the above figure, one can visually see how mice amputated the data. Although 
 
 * New variables 'return' and 'lagged_return' are calculated using the `dplyr` package. These represent the daily returns of the stock and the previous day's return, respectively. `The na.omit` function removes any rows with missing values which can't be used in the subsequent regression analysis.
 
-```{r}
+```{r, lagged_return_calc }
 # Calculate 'return' and 'lagged_return' for your model
 stocks <- stocks %>%
   mutate(
@@ -345,7 +345,7 @@ stocks <- stocks %>%
 
 The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 10) to account for the uncertainty of the imputation process.
 
-```{r}
+```{r, data_imputation_chunk}
 # Impute missing values using Predictive Mean Matching
 imputed <- mice(data = stocks, m = 10, maxit = 30, method = 'pmm', seed = 555)
 
@@ -372,7 +372,7 @@ This PMM method is a standalone, non-Bayesian imputation method.  The imputed da
 
 * Priors are defined for the Bayesian regression model using the `prior` function. The priors reflect our beliefs about the parameters before seeing the data. In this case, normal priors are set for the intercept and slope (return and lagged_return coefficients).
 
-```{r}
+```{r, defining_priors}
 # Define the priors for the Bayesian regression model
 priors <- c(
   prior(normal(0, 2), class = "Intercept"), # Intercept Prior
@@ -392,7 +392,8 @@ The `brm` function from the `brms` package fits a Bayesian regression model to e
 The posterior distribution combines the prior distribution with the likelihood of the observed data to update our beliefs about the model parameters. After fitting the model using `brm`, which internally uses Hamiltonian Monte Carlo (HMC) sampling, a type of MCMC, you obtain a distribution for each parameter that reflects all the information from the priors and the data.
 
 
-```{r}
+
+```{r, bayesian_regression_model_fit}
 # Initialize an empty list to store the models
 fits <- vector("list", length = 10)
 
@@ -412,11 +413,11 @@ for (i in seq_along(imp_datasets)) {
   )
   fits[[i]] <- fit
 }
-
 ```
 
 
-```{r}
+```{r, posterior_intercept}
+
 # Extract posterior samples for the first fitted model
 post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_return", "sigma"))
 
@@ -424,14 +425,31 @@ post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_retur
 hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of Intercept", 
      xlab = "Intercept", col = "blue")
 
-# Histogram for lagged_return
+
+hist_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept'))
+```
+
+
+```{r, posterior_lagged_return, echo = FALSE, message = FALSE, warning = FALSE}
+
 hist(post_samples$b_lagged_return, breaks = 30, main = "Posterior of lagged_return", 
      xlab = "lagged_return", col = "green")
 
+
+hist_gg(post_samples, b_lagged_return, "Posterior of Lagged Return", 'Lagged Return')
+```
+
+```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
 # Histogram for sigma
 hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", 
      xlab = "Sigma", col = "red")
 
+
+hist_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior'))
+```
+
+
+```{r, table_of_estimates}
 # Initialize lists to store parameter estimates and standard errors
 param_estimates <- list()
 param_se <- list()
@@ -492,6 +510,17 @@ print(combined_results)
 
 
 
+## Comparing with OLS
+
+```{r, ols_model}
+# OLS model
+fit_ols <- lm(returns ~ lag(returns,1))
+summary(fit_ols)
+
+```
+
+
+
 ## Combining of Model Results
 
 * Parameter estimates and standard errors are extracted from each fitted model.  These estimates are combined by calculating the mean estimate and pooled standard error for each parameter across all imputed datasets.
@@ -506,7 +535,6 @@ This analysis allows for Bayesian inference on time-series data with missing val
 The mice::ampute function is crucial because it enables researchers to understand how well their imputation and analysis methods work when some data is missing, which is a common occurrence in real-world datasets.
 
 The brm function is central to the Bayesian approach, as it fits a model within the Bayesian framework using Hamiltonian Monte Carlo, a type of MCMC sampling. The function returns a wealth of information about the model, including estimates of the posterior distribution of the model parameters, which reflects both the data and the priors.
-
 
 
 # Conclusion
