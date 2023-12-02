@@ -355,19 +355,18 @@ In the above figure, one can visually see how the mice package amputated the dat
 
 ## Data Imputation via Predictive Mean Matching
 
-The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 10) to account for the uncertainty of the imputation process.
+The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 5) to account for the uncertainty of the imputation process.
 
 ```{r, data_imputation_chunk}
 # Impute missing values using Predictive Mean Matching
 
-#Assuming your dataframe is named 'your_data'
 stock_subset <- stocks[, c("symbol", "date", "close")]
 
 #stock_subset <- stocks
 
 imputed <- mice(data = stock_subset,
-                m = 10,
-                maxit = 30,
+                m = 5,
+                maxit = 25,
                 method = 'pmm',
                 seed = 555,
                 printFlag = FALSE)
@@ -385,7 +384,7 @@ stocks$lagged_close <- c(NA, head(stocks$close, -1))
 View(stocks)
 
 # Extract imputed datasets
-imp_datasets <- lapply(1:10, function(i) complete(imputed, i))
+imp_datasets <- lapply(1:5, function(i) complete(imputed, i))
 
 #View(imp_datasets)
 ```
@@ -450,6 +449,8 @@ fits <- vector("list", length = 5)
 # Fit a Bayesian regression model to each imputed dataset and check for errors
 for (i in seq_along(imp_datasets)) {
   dataset <- imp_datasets[[i]]
+  # Create lag variable
+  dataset$lagged_close <- c(NA, head(dataset$close, -1))
   fit <- tryCatch(
     {
       model <- brm(close ~ lagged_close, data = dataset,
