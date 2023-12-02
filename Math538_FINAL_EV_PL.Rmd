@@ -193,11 +193,11 @@ In summary, the model leverages Bayesian regression, weakly informative priors, 
 
 The model being fit in this analysis is a Bayesian linear regression model with time-series data. The formula for the model is:
 
-$$r_t = \beta_0 + \beta_1 r_{t-1} + \epsilon_t$$
+$$close_t = \beta_0 + \beta_1 close_{t-1} + \epsilon_t$$
 
-* $r_t$ is the dependent variable, representing the log return of the AAPL stock on day t.  It is calculated as the difference in the logarithm of the closing prices between two consecutive days, i.e., log($close_t$) - log($close_{t-1}$).
+* $close_t$ is the dependent variable, representing the close of the AAPL stock on day t. 
 
-* $r_{t-1}$ is the independent variable, which is the log return of the AAPL stock on the previous day t-1.
+* $close_{t-1}$ is the independent variable, which is the close of the AAPL stock on the previous day t-1.
 
 * $\beta_0$ is the intercept of the regression line, which represents the expected value of $r_t$, when $r_{t-1}$ is zero.
 
@@ -220,7 +220,10 @@ set.seed(555)
 stocks <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
 
 # Help make sure we don't accidentally add new data
+stocks$lagged_close <- c(NA, head(stocks$close, -1))
+head(stocks)
 stocks <- stocks[stocks$date <= as.Date('2023-11-17'),]
+
 ```
 
 ```{r, helper-function, echo = FALSE, warning=FALSE, message=FALSE}
@@ -336,19 +339,19 @@ ts_line(stocks, "date", "close", title = 'Apple Stock since January 2, 2013 - (3
 $$\textbf{Figure X.}\text{ Visualization of the amputated data} $$
 In the above figure, one can visually see how the mice package amputated the data. Although it could be hard to see due to the visualization, it appears there is a sizable gap in data a few months prior to the year 2021. Again, this was done at random.
 
-New variables 'return' and 'lagged_return' are calculated using the `dplyr` package in the code chunk below. These represent the daily returns of the stock and the previous day's return, respectively. `The na.omit` function removes any rows with missing values which can't be used in the subsequent regression analysis.
 
 ```{r,  lagged_return_calc }
 
-stocks2 <- stocks
+#stocks2 <- stocks
 
 # Calculate 'return' and 'lagged_return'
-stocks <- stocks %>%
-  mutate(
-    return = c(NA, diff(log(close))),
-    lagged_return = lag(return, 1)
-  ) %>%
-  na.omit()  # Remove rows with NAs
+#stocks <- stocks %>%
+#  mutate(
+#    return = c(NA, diff(log(close))),
+#    lagged_return = lag(return, 1)
+#  ) 
+  #%>%
+  #na.omit()  # Remove rows with NAs
 
 
 # Calculate 'return' and 'lagged_return'
@@ -359,11 +362,11 @@ stocks <- stocks %>%
 #  )
 
 
-cat(dim(stocks), ',', dim(stocks2))
+#cat(dim(stocks), ',', dim(stocks2))
 
-View(stocks)
+#View(stocks)
 
-View(stocks2)
+#View(stocks2)
 ```
 
 ## Data Imputation via Predictive Mean Matching
@@ -374,8 +377,13 @@ The `mice` function is used to impute missing values in the dataset. It uses Pre
 # Impute missing values using Predictive Mean Matching
 imputed <- mice(data = stocks, m = 10, maxit = 30, method = 'pmm', seed = 555)
 
+#print(imputed)
+
+#ts_line(imputed, "date", "close", title = 'Data after PMM imputation method is run to fill in missing values')
+
 # Extract imputed datasets
 imp_datasets <- lapply(1:10, function(i) complete(imputed, i))
+
 ```
 
 The PMM Process for this mice (Multivariate Imputation by Chained Equations) function works as follows:
@@ -404,7 +412,7 @@ priors <- c(
 )
 ```
 
-* Intercept Prior: A normal distribution with a mean of 0 and a standard deviation of 2. This is specified by prior(normal(0, 2), class = "Intercept"). A prior such as this indicates that before looking at the data, an analyst might believe the average daily return when the lagged return is zero is likely to be around 0 but would like to relect some uncertainty, which is captured by the standard deviation of 2.
+* Intercept Prior: A normal distribution with a mean of 0 and a standard deviation of 2. This is specified by prior(normal(0, 2), class = "Intercept"). A prior such as this indicates that before looking at the data, an analyst might believe the average daily return when the lagged return is zero is likely to be around 0 but would like to reflect some uncertainty, which is captured by the standard deviation of 2.
 
 * Slope Prior: A normal distribution with a mean of 0 and a standard deviation of 1. This is specified by prior(normal(0, 1), class = "b"). It suggests that before analyzing the data, an analyst might expect the impact of the previous day's return on today's return to be small, as indicated by the mean of 0. The standard deviation of 1 reflects uncertainty about this expectation.
 
@@ -417,15 +425,15 @@ The posterior distribution combines the prior distribution with the likelihood o
 
 ```{r, bayesian_regression_model_fit}
 # Initialize an empty list to store the models
-fits <- vector("list", length = 10)
+fits <- vector("list", length = 5)
 
 # Fit a Bayesian regression model to each imputed dataset and check for errors
 for (i in seq_along(imp_datasets)) {
   dataset <- imp_datasets[[i]]
   fit <- tryCatch(
     {
-      model <- brm(return ~ lagged_return, data = dataset,
-                   iter = 1000, warmup = 500, chains = 2, prior = priors)
+      model <- brm(close ~ lagged_close, data = dataset,
+                   iter = 750, warmup = 500, chains = 2, prior = priors)
       model # Return the model
     },
     error = function(e) {
@@ -435,28 +443,30 @@ for (i in seq_along(imp_datasets)) {
   )
   fits[[i]] <- fit
 }
+
 ```
 
 
 ```{r, posterior_intercept}
 
 # Extract posterior samples for the first fitted model
-post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_return", "sigma"))
+post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close", "sigma"))
 
 # Histogram for the Intercept
 hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of Intercept", 
      xlab = "Intercept", col = "blue")
 
 hist_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept'))
+
 ```
 
 
 ```{r, posterior_lagged_return, echo = FALSE, message = FALSE, warning = FALSE}
 
-hist(post_samples$b_lagged_return, breaks = 30, main = "Posterior of lagged_return", 
-     xlab = "lagged_return", col = "green")
+hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", 
+     xlab = "lagged_close", col = "green")
 
-hist_gg(post_samples, b_lagged_return, "Posterior of Lagged Return", 'Lagged Return')
+hist_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", 'Lagged Close')
 ```
 
 ```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
@@ -533,7 +543,7 @@ print(combined_results)
 
 ```{r, ols_model}
 # OLS model
-fit_ols <- lm(returns ~ lag(returns,1))
+fit_ols <- lm(stocks$close ~ stocks$lagged_close)
 summary(fit_ols)
 
 ```
@@ -561,10 +571,6 @@ This analysis demonstrated a Bayesian approach for handling missing data, specif
 The multi-step process provides a blueprint for principled missing data handling - imputing while preserving relationships in the data, fitting appropriate Bayesian models, and aggregating estimates for final inference. The methodology can generalize across applications with missing observations, from financial time series forecasting to political polls, epidemiology, econometrics, or climate data analysis. Missingness often arises when merging multiple datasets as well. The multiple imputation framework allows proceeding with modeling and prevents relying only on complete cases. The Bayesian approach allows flexible incorporation of complex relationships and prior knowledge to strengthen imputations and parameter estimates despite gaps. Use of MCMC sampling handles high-dimensional posteriors despite analytic intractability. Thus Bayesian missing data techniques serve as broadly applicable tools for overcoming an omnipresent analysis challenge to enable robust modeling from incomplete real-world data.
 
 # Reference
-
-References: In your presentation you do not need to have a formal reference
-slide, however, be sure to appropriately reference books/papers/codes that you
-used in your written report.
 
 1. Lai, Mark. 2019. "Course Handouts for Bayesian Data Analysis Class." Class handouts, December 13, 2019. https://bookdown.org/marklhc/notes_bookdown/missing-data.html
 
