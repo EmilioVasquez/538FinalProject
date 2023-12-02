@@ -32,7 +32,7 @@ library(mice)
 library(brms)
 library(dplyr)
 library(bayesplot)
-
+library(VIM)
 
 ```
 
@@ -220,10 +220,10 @@ set.seed(555)
 stocks <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
 
 # Help make sure we don't accidentally add new data
-stocks$lagged_close <- c(NA, head(stocks$close, -1))
-head(stocks)
 stocks <- stocks[stocks$date <= as.Date('2023-11-17'),]
 
+# Store pre-amp
+stocks$close_preamp <- stocks$close
 ```
 
 ```{r, helper-function, echo = FALSE, warning=FALSE, message=FALSE}
@@ -231,9 +231,9 @@ stocks <- stocks[stocks$date <= as.Date('2023-11-17'),]
 # Helper functions
 ################################################################################
 
-ts_line <- function(df, xval, yval, title ='',  ylab = ''){
+ts_line <- function(df, xval, yval, title ='',  ylab = '', col_in = 'black'){
   # This functions takes in a dataframe along with a x
-  p <- ggplot(df, aes_string(x = xval, y = yval)) +
+  p <- ggplot(df, aes_string(x = xval, y = yval), color = col_in) +
     geom_line() +
     labs(title = title, x = "Date", y = ylab) + 
     theme_bw() +
@@ -241,8 +241,17 @@ ts_line <- function(df, xval, yval, title ='',  ylab = ''){
   return(p)
 }
 
+hist_gg <- function(data, x_var, title = "Histogram", x_axis_label = "X Axis", binwidth = NULL) {
+  plt <- ggplot(data = data, aes(x = {{x_var}})) +
+    geom_histogram(binwidth = binwidth) +
+    ggtitle(title) +
+    xlab(x_axis_label) + 
+    theme_bw()
+  return(plt)
+}
 
-hist_gg <- function(data, x_var, title = "Histogram", x_axis_label = "X Axis") {
+
+density_gg <- function(data, x_var, title = "Histogram", x_axis_label = "X Axis") {
   plt <- ggplot(data = data, aes(x = {{x_var}})) +
     geom_density() +
     ggtitle(title) +
@@ -324,6 +333,10 @@ amputed_data <- mice::ampute(stocks_for_ampute, prop = 0.3, mech = "MAR")
 # Update the stocks with the amputed data for 'close'
 stocks$close <- amputed_data$amp[, "close"]
 
+# Add flag for complete data. 
+# 1 - complete data, 0 - incomplete data
+stocks$r <- ifelse(is.na(stocks$close), 0, 1)
+
 # Ensure all necessary columns are present after amputation
 stocks <- as.data.frame(stocks)
 ```
@@ -340,50 +353,41 @@ $$\textbf{Figure X.}\text{ Visualization of the amputated data} $$
 In the above figure, one can visually see how the mice package amputated the data. Although it could be hard to see due to the visualization, it appears there is a sizable gap in data a few months prior to the year 2021. Again, this was done at random.
 
 
-```{r,  lagged_return_calc }
-
-#stocks2 <- stocks
-
-# Calculate 'return' and 'lagged_return'
-#stocks <- stocks %>%
-#  mutate(
-#    return = c(NA, diff(log(close))),
-#    lagged_return = lag(return, 1)
-#  ) 
-  #%>%
-  #na.omit()  # Remove rows with NAs
-
-
-# Calculate 'return' and 'lagged_return'
-#stocks <- stocks %>%
-#  mutate(
-#    return = c(NA, diff(log(close))),
-#    lagged_return = lag(return, 1)
-#  )
-
-
-#cat(dim(stocks), ',', dim(stocks2))
-
-#View(stocks)
-
-#View(stocks2)
-```
-
 ## Data Imputation via Predictive Mean Matching
 
 The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 10) to account for the uncertainty of the imputation process.
 
 ```{r, data_imputation_chunk}
 # Impute missing values using Predictive Mean Matching
-imputed <- mice(data = stocks, m = 10, maxit = 30, method = 'pmm', seed = 555)
 
-#print(imputed)
+#Assuming your dataframe is named 'your_data'
+stock_subset <- stocks[, c("symbol", "date", "close")]
 
-#ts_line(imputed, "date", "close", title = 'Data after PMM imputation method is run to fill in missing values')
+#stock_subset <- stocks
+
+imputed <- mice(data = stock_subset,
+                m = 10,
+                maxit = 30,
+                method = 'pmm',
+                seed = 555,
+                printFlag = FALSE)
+
+stocks_comp <- complete(imputed)
+
+# View complete and incomplete records
+#aggr(stocks_comp)
+
+stocks$close <- stocks_comp$close
+
+# Create lag variable based on imputed data
+stocks$lagged_close <- c(NA, head(stocks$close, -1))
+
+View(stocks)
 
 # Extract imputed datasets
 imp_datasets <- lapply(1:10, function(i) complete(imputed, i))
 
+#View(imp_datasets)
 ```
 
 The PMM Process for this mice (Multivariate Imputation by Chained Equations) function works as follows:
@@ -397,6 +401,22 @@ ii) For a missing $Y_i$, we find the set of cases(called donors in the package) 
 iii) Randomly select a $Y_d$ from $D_i$ to impute $Y_i$. There is the option to do a straight imputation or choose n $Y_d$ and take an average. Straight imputation was performed in this analysis and the selection from this set D gives each candidate an equal chance of being selected. Upon exploring the mice documentation, this probability process was akin to a uniform probability distribution over the pool of potential donors. 
 
 The PMM method is a standalone, non-Bayesian imputation method. The imputed datasets generated are then used further using Bayesian methods in this project.  By creating multiple imputations (m = 10), `mice` acknowledges and represents the uncertainty inherent in the imputation process.
+
+
+### Analyzing Imputated Data
+
+```{r}
+ts_line(stocks, "date", "close_preamp", title = 'Data after PMM imputation method is run to fill in missing values', col_in = "pink") + geom_line(aes(x = date, y= close), color = "red", linetype = 'dotted')
+```
+$$\textbf{Figure X.}\text{ Historical trend of APPL}  $$
+
+```{r}
+stocks$diff <- stocks$close - stocks$close_preamp
+
+hist_gg(stocks, diff, title = "Histogram of Difference of Imputed and Original Data", x_axis_label = "Difference")
+```
+$$\textbf{Figure X.}\text{ Historical trend of difference between imputed data and original data}  $$
+
 
 ## Bayesian Regression Model
 
@@ -456,7 +476,7 @@ post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close
 hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of Intercept", 
      xlab = "Intercept", col = "blue")
 
-hist_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept'))
+density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept'))
 
 ```
 
@@ -466,7 +486,7 @@ hist_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ '
 hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", 
      xlab = "lagged_close", col = "green")
 
-hist_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", 'Lagged Close')
+density_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", 'Lagged Close')
 ```
 
 ```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
@@ -474,7 +494,7 @@ hist_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", 'Lagged Clos
 hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", 
      xlab = "Sigma", col = "red")
 
-hist_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior'))
+density_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior'))
 ```
 
 
