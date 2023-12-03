@@ -397,7 +397,7 @@ ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 3 and Original'
 
 ```
 
-$$\textbf{Figure X.}\text{ Histogram of the difference of the actual close price vs the imputated data points}  $$
+$$\textbf{Figure X.}\text{ Imputed results for dataset 3 overlayed the actual close price }  $$
 
 Figure X shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists results where the difference was actually smaller and worse than this. The other 4 imputed dataset results can be viewed in the appendix.
 
