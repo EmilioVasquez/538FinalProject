@@ -472,7 +472,7 @@ density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta 
 hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", 
      xlab = "lagged_close", col = "green")
 
-density_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", 'Lagged Close')
+density_gg(post_samples, b_lagged_close, "Posterior of Lagged Close", 'Lagged Close')
 ```
 
 ```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
@@ -541,6 +541,10 @@ combined_results$ci_lower <- ci_lower_combined
 combined_results$ci_upper <- ci_upper_combined
 
 print(combined_results)
+
+cat("point estimate for sigma: ", 100)
+cat("ci_lower for sigma: ", quantile(post_samples$sigma, 0.025))
+cat("ci_upper for sigma: ", quantile(post_samples$sigma, 0.975))
 ```
 
 
@@ -548,9 +552,15 @@ print(combined_results)
 ## Comparing with OLS
 
 ```{r, ols_model}
+
+data_all <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
+
+data_all$lagged_close <- c(NA, head(data_all$close, -1))
+
+
 # OLS model
-#fit_ols <- lm(stocks$close ~ stocks$lagged_close)
-#summary(fit_ols)
+fit_ols <- lm(data_all$close ~ data_all$lagged_close)
+summary(fit_ols)
 
 ```
 
@@ -592,6 +602,7 @@ The multi-step process provides a blueprint for principled missing data handling
 
 
 ```{r, raw return analysis}
+
 # Calculate raw returns
 returns =diff(log(stocks$close_preamp))
 
