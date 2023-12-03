@@ -284,33 +284,6 @@ With the help of Tidyquant, historical results can be provided for APPL since Ja
 During this time frame, the stock split twice. The first occurred on June 9, 2014 where the stock split 7:1. So the number of shares was multiplied by 7 and saw a share price divided by 7. Following this split, there was not much of a jump in price in the time following this split. The second stock 4:1 stock split on August 31, 2020 saw an upward surge in price in the weeks leading up to and after the stock split.
 
 
-### Raw Returns Analysis
-
-
-```{r, raw return analysis}
-# Calculate raw returns
-returns =diff(log(stocks$close))
-
-# Plot time series  
-plot(returns, type="l", main="Raw Apple Returns Since January 2, 2013")
-```
-
-$$\textbf{Figure X.}\text{ Historical Trend of Raw Returns for APPL since January 1, 2013}  $$
-In the above figure, one can see the historical trend of raw returns for APPL since January 1, 2013. Taking the log of the returns is a common application in fincance used for volatility analysis. Applying the 'diff' function calcualtes the difference between consecutive element. Within the context of this analysis, the function will compute the daily log returns by calculating the difference between each day's log closing price and the previous day closing's prices.
-
-```{r, raw returns ACF plot}
-# Calculate autocorrelations
-acf_returns = acf(returns, lag.max=5, plot=FALSE) 
-
-# Plot ACF
-plot(acf_returns, main="ACF Plot of Raw Returns")
-```
-
-$$\textbf{Figure X.}\text{ ACF Plot of raw returns}  $$
-
-
-With the ACF plots shown in the above figure, the autocorrelation structure of the raw returns. With the autocorrelation falling within the blue horizontal bands, this would mean that the there is independence within the log returns.
-
 ##  Data Amputation Prep and Procedure
 
 A subset of the retrieved data is selected, focusing on the 'close' (closing price) and 'volume' (number of shares traded) columns.
@@ -362,8 +335,6 @@ The `mice` function is used to impute missing values in the dataset. It uses Pre
 
 stock_subset <- stocks[, c("symbol", "date", "close")]
 
-#stock_subset <- stocks
-
 imputed <- mice(data = stock_subset,
                 m = 5,
                 maxit = 25,
@@ -371,22 +342,10 @@ imputed <- mice(data = stock_subset,
                 seed = 555,
                 printFlag = FALSE)
 
-stocks_comp <- complete(imputed)
-
-# View complete and incomplete records
-#aggr(stocks_comp)
-
-stocks$close <- stocks_comp$close
-
-# Create lag variable based on imputed data
-stocks$lagged_close <- c(NA, head(stocks$close, -1))
-
-View(stocks)
-
 # Extract imputed datasets
 imp_datasets <- lapply(1:5, function(i) complete(imputed, i))
 
-#View(imp_datasets)
+View(imp_datasets)
 ```
 
 The PMM Process for this mice (Multivariate Imputation by Chained Equations) function works as follows:
@@ -404,17 +363,43 @@ The PMM method is a standalone, non-Bayesian imputation method. The imputed data
 
 ### Analyzing Imputated Data
 
-```{r}
-ts_line(stocks, "date", "close_preamp", title = 'Data after PMM imputation method is run to fill in missing values', col_in = "pink") + geom_line(aes(x = date, y= close), color = "red", linetype = 'dotted')
-```
-$$\textbf{Figure X.}\text{ Historical trend of APPL}  $$
+First, we will add the results of the 5 imputed datasets back into the main 'stocks' dataframe. 
 
 ```{r}
-stocks$diff <- stocks$close - stocks$close_preamp
-
-hist_gg(stocks, diff, title = "Histogram of Difference of Imputed and Original Data", x_axis_label = "Difference")
+stocks$imp1 <- imp_datasets[[1]]$close
+stocks$imp2 <- imp_datasets[[2]]$close
+stocks$imp3 <- imp_datasets[[3]]$close
+stocks$imp4 <- imp_datasets[[4]]$close
+stocks$imp5 <- imp_datasets[[5]]$close
 ```
-$$\textbf{Figure X.}\text{ Historical trend of difference between imputed data and original data}  $$
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+diff_combined  <- c((stocks$close_preamp - stocks$imp1),
+ (stocks$close_preamp - stocks$imp2),
+ (stocks$close_preamp - stocks$imp3),
+ (stocks$close_preamp - stocks$imp4),
+ (stocks$close_preamp - stocks$imp5)
+ )
+
+diff_combined <- as.data.frame(diff_combined)
+hist_gg(diff_combined, diff_combined, title = "Difference of Original Data and Imputed Data for All 5 Imputed Data Sets", x_axis_label = "Difference")
+```
+
+$$\textbf{Figure X.}\text{ Histogram of the difference of the actual close price vs the imputated data points}  $$
+Figure X shows the difference from the original score vs the imputated score for all 5 multiply imputed datasets combined into one visualiztion. As one can see, the vast majority of points had a very small difference between the actual and the imputated, showing that the imputation was a success. The appendix hosts histograms of differences for all 5 data sets individually.
+
+
+```{r, echo = FALSE, message = FALSE, warning=FALSE}
+ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 3 and Original') + geom_line(aes(x = date, y= imp3, color = "imputed"), linetype = 'dotted') +
+  # Adding a legend at the bottom with no title
+  scale_color_manual(values = c("Original" = "black", "imputed" = "red"), labels = c("Imputed Data", "4:1 Split")) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+```
+
+$$\textbf{Figure X.}\text{ Histogram of the difference of the actual close price vs the imputated data points}  $$
+
+Figure X shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists results where the difference was actually smaller and worse than this. The other 4 imputed dataset results can be viewed in the appendix.
 
 
 ## Bayesian Regression Model
@@ -564,8 +549,8 @@ print(combined_results)
 
 ```{r, ols_model}
 # OLS model
-fit_ols <- lm(stocks$close ~ stocks$lagged_close)
-summary(fit_ols)
+#fit_ols <- lm(stocks$close ~ stocks$lagged_close)
+#summary(fit_ols)
 
 ```
 
@@ -596,4 +581,84 @@ The multi-step process provides a blueprint for principled missing data handling
 1. Lai, Mark. 2019. "Course Handouts for Bayesian Data Analysis Class." Class handouts, December 13, 2019. https://bookdown.org/marklhc/notes_bookdown/missing-data.html
 
 2. Little, Roderick. 2011. "Calibrated Bayes, for Statistics in General, and Missing Data in Particular." Statistical Science 26 (2): 162–74. https://doi.org/10.1214/10-STS318.
+
+
+# Appendix
+
+## Additional Exploratory Data Analysis
+
+
+### Raw Returns Analysis
+
+
+```{r, raw return analysis}
+# Calculate raw returns
+returns =diff(log(stocks$close_preamp))
+
+# Plot time series  
+plot(returns, type="l", main="Raw Apple Returns Since January 2, 2013")
+```
+
+$$\textbf{Figure X.}\text{ Historical Trend of Raw Returns for APPL since January 1, 2013}  $$
+In the above figure, one can see the historical trend of raw returns for APPL since January 1, 2013. Taking the log of the returns is a common application in fincance used for volatility analysis. Applying the 'diff' function calcualtes the difference between consecutive element. Within the context of this analysis, the function will compute the daily log returns by calculating the difference between each day's log closing price and the previous day closing's prices.
+
+```{r, raw returns ACF plot}
+# Calculate autocorrelations
+acf_returns = acf(returns, lag.max=5, plot=FALSE) 
+
+# Plot ACF
+plot(acf_returns, main="ACF Plot of Raw Returns")
+```
+
+$$\textbf{Figure X.}\text{ ACF Plot of raw returns}  $$
+
+
+With the ACF plots shown in the above figure, the autocorrelation structure of the raw returns. With the autocorrelation falling within the blue horizontal bands, this would mean that the there is independence within the log returns.
+
+
+## Imputed Data Results
+
+
+### Histograms for the Difference of Original Data and Imputed Data
+
+```{r}
+hist_gg(stocks, close_preamp - imp1, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 1", x_axis_label = "Difference")
+
+hist_gg(stocks, close_preamp - imp2, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 2", x_axis_label = "Difference")
+
+hist_gg(stocks, close_preamp - imp3, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 3", x_axis_label = "Difference")
+
+hist_gg(stocks, close_preamp - imp4, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 4", x_axis_label = "Difference")
+
+hist_gg(stocks, close_preamp - imp5, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 1", x_axis_label = "Difference")
+```
+
+
+### Graph of Imputed Data and Original Data
+
+```{r}
+
+ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 1 and Original') + geom_line(aes(x = date, y= imp1, color = "imputed"), linetype = 'dotted') +
+  # Adding a legend at the bottom with no title
+  scale_color_manual(values = c("Original" = "black", "imputed" = "red"), labels = c("Imputed Data", "4:1 Split")) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+
+ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 2 and Original') + geom_line(aes(x = date, y= imp2, color = "imputed"), linetype = 'dotted') +
+  # Adding a legend at the bottom with no title
+  scale_color_manual(values = c("Original" = "black", "imputed" = "red"), labels = c("Imputed Data", "4:1 Split")) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+
+ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 4 and Original') + geom_line(aes(x = date, y= imp4, color = "imputed"), linetype = 'dotted') +
+  # Adding a legend at the bottom with no title
+  scale_color_manual(values = c("Original" = "black", "imputed" = "red"), labels = c("Imputed Data", "4:1 Split")) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+
+ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 5 and Original') + geom_line(aes(x = date, y= imp5, color = "imputed"), linetype = 'dotted') +
+  # Adding a legend at the bottom with no title
+  scale_color_manual(values = c("Original" = "black", "imputed" = "red"), labels = c("Imputed Data", "4:1 Split")) +
+  theme(legend.position = "bottom", legend.title = element_blank())
+```
+
 
