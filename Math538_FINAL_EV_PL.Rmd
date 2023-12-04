@@ -146,6 +146,8 @@ Missing not at random is when the missing data is related to the variable of int
 For the types of missing data above, it becomes imperative for a data scientist or statistician to have tools to overcome the obstacle of missing data. Depending on the scenario such as having a small dataset, throwing out incomplete records could result in losing valuable information and bring potential biases into any estimates provided to a stakeholder. Multiple imputation is one way to predict missing values based on patterns in the observed data. This provides a principled way to fill in missing values while accounting for uncertainty, rather than ad-hoc methods like mean imputation. Some models that can be used are multivariate normal imputation or chained equations/sequential regression approaches. The multiple imputed datasets can then be used to train the predictive models, with results appropriately combined across the imputed datasets which allow building more robust models on messy real-world data.
 
 
+\newpage
+
 # Structure of Model/Process
 
 
@@ -188,7 +190,9 @@ Multiple imputation is done by drawing missing Y values from their posterior pre
 
 In summary, the model leverages Bayesian regression, weakly informative priors, and treats missing values as parameters to plausibly fill in gaps while quantifying uncertainty. The multiple imputed datasets integrate over the posterior distribution of the missing data.
 
-# Example
+\newpage
+
+# Data Example
 
 
 The model being fit in this analysis is a Bayesian linear regression model with time-series data. The formula for the model is:
@@ -211,7 +215,7 @@ The following sections will delve into the steps taken for this analysis.
 
 ## Data Acquisition
 
-The `tq_get` function from the `tidyquant` package retrieves historical stock price data for Apple Inc (APPL) from an online source.
+The `tq_get` function from the `tidyquant` package retrieves historical stock price data for Apple Inc (APPL) from an online source. The `set.seed` function sets the random number generator's seed to ensure reproducibility of the results. 
 
 ```{r data-read}
 set.seed(555)
@@ -259,6 +263,17 @@ density_gg <- function(data, x_var, title = "Histogram", x_axis_label = "X Axis"
     theme_bw()
   return(plt)
 }
+
+# Find mode of density of ggplot
+mode_density <- function(plt) {
+  # Extract the data from ggplot plot
+  plot_data <- layer_data(plt, 1)
+  # Find the index of the highest peak in the density data
+  max_index <- which.max(plot_data$y)
+  # Get the corresponding x-value
+  x_value_corresponding_to_peak <- plot_data$x[max_index]
+  return(x_value_corresponding_to_peak)
+}
 ```
 
 
@@ -293,7 +308,7 @@ A subset of the retrieved data is selected, focusing on the 'close' (closing pri
 stocks_for_ampute <- stocks[, c("close", "volume")]
 ```
 
-The `set.seed` function sets the random number generator's seed to ensure reproducibility of the results. The mice::ampute function artificially introduces missing values into the dataset to simulate incomplete data, which is common in real-world scenarios. The few key arguments are used as follows:
+The mice::ampute function artificially introduces missing values into the dataset to simulate incomplete data, which is common in real-world scenarios. The few key arguments are used as follows:
 
 * The prop argument specifies the proportion of data to be made missing
 
@@ -318,7 +333,7 @@ stocks <- as.data.frame(stocks)
 
 The stocks dataframe is updated with the amputated 'close' prices.
 
-```{r, amputated_EDA, echo = FALSE, message= FALSE}
+```{r, amputated_EDA, echo = FALSE, message= FALSE, warning = FALSE}
 ts_line(stocks, "date", "close", title = 'Apple Stock since January 2, 2013 - (30% Missing Data)', ylab = 'Price (Close)')
 ```
 
@@ -345,7 +360,7 @@ imputed <- mice(data = stock_subset,
 # Extract imputed datasets
 imp_datasets <- lapply(1:5, function(i) complete(imputed, i))
 
-View(imp_datasets)
+#View(imp_datasets)
 ```
 
 The PMM Process for this mice (Multivariate Imputation by Chained Equations) function works as follows:
@@ -358,12 +373,12 @@ ii) For a missing $Y_i$, we find the set of cases(called donors in the package) 
 
 iii) Randomly select a $Y_d$ from $D_i$ to impute $Y_i$. There is the option to do a straight imputation or choose n $Y_d$ and take an average. Straight imputation was performed in this analysis and the selection from this set D gives each candidate an equal chance of being selected. Upon exploring the mice documentation, this probability process was akin to a uniform probability distribution over the pool of potential donors. 
 
-The PMM method is a standalone, non-Bayesian imputation method. The imputed datasets generated are then used further using Bayesian methods in this project.  By creating multiple imputations (m = 10), `mice` acknowledges and represents the uncertainty inherent in the imputation process.
+The PMM method is a standalone, non-Bayesian imputation method. The imputed datasets generated are then used further using Bayesian methods in this project.  By creating multiple imputations (m = 5), `mice` acknowledges and represents the uncertainty inherent in the imputation process.
 
 
-### Analyzing Imputated Data
+### Analyzing imputed Data
 
-First, we will add the results of the 5 imputed datasets back into the main 'stocks' dataframe. 
+First, we will add the results of the 5 imputed datasets back into the main 'stocks' dataframe to allow futher analysis of the imputed data.
 
 ```{r}
 stocks$imp1 <- imp_datasets[[1]]$close
@@ -382,11 +397,11 @@ diff_combined  <- c((stocks$close_preamp - stocks$imp1),
  )
 
 diff_combined <- as.data.frame(diff_combined)
-hist_gg(diff_combined, diff_combined, title = "Difference of Original Data and Imputed Data for All 5 Imputed Data Sets", x_axis_label = "Difference")
+hist_gg(diff_combined, diff_combined, title = "Difference of Original Data and Imputed Data for All 5 Imputed Data Sets", x_axis_label = "Difference", binwidth = .5)
 ```
 
-$$\textbf{Figure X.}\text{ Histogram of the difference of the actual close price vs the imputated data points}  $$
-Figure X shows the difference from the original score vs the imputated score for all 5 multiply imputed datasets combined into one visualiztion. As one can see, the vast majority of points had a very small difference between the actual and the imputated, showing that the imputation was a success. The appendix hosts histograms of differences for all 5 data sets individually.
+$$\textbf{Figure X.}\text{ Histogram of the difference of the actual close price vs the imputed data points}  $$
+Figure X shows the difference from the original score vs the imputed score for all 5 multiply imputed datasets combined into one visualiztion. As one can see, the vast majority of points had a very small difference between the actual and the imputed. There were a few outliers that had imputed a value greater than \$20 but overall the imputation was a success. The appendix hosts histograms of differences for all 5 data sets individually.
 
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
@@ -399,7 +414,7 @@ ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 3 and Original'
 
 $$\textbf{Figure X.}\text{ Imputed results for dataset 3 overlayed the actual close price }  $$
 
-Figure X shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists results where the difference was actually smaller and worse than this. The other 4 imputed dataset results can be viewed in the appendix.
+Figure X shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists imputed results where the difference was actually smaller and worse than this. The other 4 imputed dataset results can be viewed in the appendix.
 
 
 ## Bayesian Regression Model
@@ -427,7 +442,7 @@ The `brm` function from the `brms` package fits a Bayesian regression model to e
 
 The posterior distribution combines the prior distribution with the likelihood of the observed data to update our beliefs about the model parameters. After fitting the model using `brm`, which internally uses Hamiltonian Monte Carlo (HMC) sampling, a type of MCMC, one can obtain a distribution for each parameter that reflects all the information from the priors and the data.
 
-```{r, bayesian_regression_model_fit}
+```{r, bayesian_regression_model_fit, results = 'hide', message = FALSE, warning = FALSE}
 # Initialize an empty list to store the models
 fits <- vector("list", length = 5)
 
@@ -449,40 +464,33 @@ for (i in seq_along(imp_datasets)) {
   )
   fits[[i]] <- fit
 }
-
 ```
 
+Due to the length the readout, the readout of this code chunk has been relegated to the appendix.
 
-```{r, posterior_intercept}
+### Bayesian Regression Results
 
+Now that the bayesian regression model has been fit, one can now gather inference. First, the posterior samples are extracted.
+
+
+```{r, posterior_intercept, warning = FALSE}
 # Extract posterior samples for the first fitted model
 post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close", "sigma"))
 
-# Histogram for the Intercept
-hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of Intercept", 
-     xlab = "Intercept", col = "blue")
 
-density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept'))
+### Talk to nik about...
+#I noticed we only take the posterior samples for the first dataset, but would it better illustrate our point of multiple imputation if we take the posterior samples for all 5 fits
+# of brms?
 
+post_samples <- as.data.frame(rbind(posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close", "sigma")),
+      posterior_samples(fits[[2]], pars = c("Intercept", "lagged_close", "sigma")),
+      posterior_samples(fits[[3]], pars = c("Intercept", "lagged_close", "sigma")),
+      posterior_samples(fits[[4]], pars = c("Intercept", "lagged_close", "sigma")),
+      posterior_samples(fits[[5]], pars = c("Intercept", "lagged_close", "sigma"))))
 ```
 
 
-```{r, posterior_lagged_return, echo = FALSE, message = FALSE, warning = FALSE}
-
-hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", 
-     xlab = "lagged_close", col = "green")
-
-density_gg(post_samples, b_lagged_close, "Posterior of Lagged Close", 'Lagged Close')
-```
-
-```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
-# Histogram for sigma
-hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", 
-     xlab = "Sigma", col = "red")
-
-density_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior'))
-```
-
+The below chunk will calculate a MAP estimate as well as 95\% credible interval estimates for the parameters $\beta, \beta_0$.
 
 ```{r, table_of_estimates}
 # Initialize lists to store parameter estimates and standard errors
@@ -511,9 +519,6 @@ combined_se <- sqrt(Reduce("+", lapply(param_se, `^`, 2))) / length(fits)
 # Combine into a data frame
 combined_results <- data.frame(Estimate = combined_estimates, Std.Error = combined_se)
 
-# Print combined results
-#print(combined_results)
-
 # Initialize lists to store CIs
 ci_lower <- list() 
 ci_upper <- list()
@@ -529,18 +534,16 @@ for (i in seq_along(fits)) {
     ci_upper[[i]] <- ci[,2]
     
   }
-  
 }
 
 # Combine CIs 
-
 ci_lower_combined <- Reduce("+", ci_lower) / length(fits)
 ci_upper_combined <- Reduce("+", ci_upper) / length(fits)
 
 combined_results$ci_lower <- ci_lower_combined
 combined_results$ci_upper <- ci_upper_combined
 
-print(combined_results)
+#print(combined_results)
 
 cat("point estimate for sigma: ", 100)
 cat("ci_lower for sigma: ", quantile(post_samples$sigma, 0.025))
@@ -548,21 +551,127 @@ cat("ci_upper for sigma: ", quantile(post_samples$sigma, 0.975))
 ```
 
 
+\begin{center}
+\begin{tabular}{||c c c c||} 
+ \hline
+  & Point Estimate  & CI Low & CI High \\ [0.5ex] 
+ \hline\hline
+ $\beta_0$ & 0.05693082 & -0.09265884 & 0.2163004 \\ 
+ \hline
+ $\beta_1$ & 0.99943648  & 0.99766967 & 1.0011488\\
+ \hline
+ $\sigma$ & 88 & 2.508397 & 2.622535\\ [1ex] 
+ \hline
+\end{tabular}
+\end{center}
+
+
+```{r, intercept_samples, echo = FALSE}
+# Histogram for the Intercept
+#hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of #Intercept", 
+#     xlab = "Intercept", col = "blue")
+
+density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept')) +
+  geom_vline(xintercept = combined_results$ci_lower[1], color = "red", linetype = 'dotted') +
+  geom_vline(xintercept = combined_results$ci_upper[1], color = "red", linetype = 'dotted') +
+  geom_vline(xintercept = combined_results$Estimate[1],color = "green", linetype = 'dotted')
+```
+
+
+
+```{r, intercept_samples_efv, echo = FALSE}
+# Histogram for the Intercept
+#hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of #Intercept", 
+#     xlab = "Intercept", col = "blue")
+
+post_plot <- density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept')) 
+
+map <- mode_density(post_plot)
+ci_low <- quantile(post_samples$b_Intercept, 0.025)
+ci_high <- quantile(post_samples$b_Intercept, 0.975)
+
+post_plot +
+  geom_vline(aes(xintercept = ci_low, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = ci_high, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = map, color = "MAP"), linetype = 'dotted', linewidth = 1) +
+  scale_color_manual(name = "", values = c("red", "green"), labels = c("Credible Interval", "MAP")) +
+  theme(legend.position = "bottom")  # Set legend position to bottom
+```
+
+
+
+
+
+```{r, posterior_lagged_return, echo = FALSE, message = FALSE, warning = FALSE}
+
+#hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", xlab = "lagged_close", col = "green") + 
+
+density_gg(post_samples, b_lagged_close, "Posterior of Lagged Close", 'Lagged Close') +
+  geom_vline(xintercept = combined_results$ci_lower[2], color = "red", linetype = 'dotted', linewidth = 1) +
+  geom_vline(xintercept = combined_results$ci_upper[2], color = "red", linetype = 'dotted', linewidth = 1) + 
+  geom_vline(xintercept = combined_results$Estimate[2], color = "green", linetype = 'dotted', linewidth = 1)
+```
+
+
+
+```{r, lagged_return_samples_efv, echo = FALSE}
+plot <- density_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", expression(beta ~ ' Lagged Close')) 
+
+
+map <- mode_density(plot)
+ci_low <- quantile(post_samples$b_lagged_close, 0.025)
+ci_high <- quantile(post_samples$b_lagged_close, 0.975)
+
+plot +
+  geom_vline(aes(xintercept = ci_low, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = ci_high, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = map, color = "MAP"), linetype = 'dotted', linewidth = 1) +
+  scale_color_manual(name = "", values = c("red", "green"), labels = c("Credible Interval", "MAP")) +
+  theme(legend.position = "bottom")  # Set legend position to bottom
+```
+
+
+```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
+# Histogram for sigma
+#hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", xlab = "Sigma", col = "red")
+
+density_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior')) + geom_vline(xintercept = combined_results$ci_lower[1]) + geom_vline(xintercept = combined_results$ci_upper[1]) + 
+  geom_vline(xintercept = combined_results$Estimate[1])
+```
+
+
+
+```{r, sigma_post_samples_efv, echo = FALSE}
+plot <- density_gg(post_samples, sigma, expression('Posterior Distribution of' ~ sigma), expression(sigma ~ 'Posterior')) 
+map <- mode_density(plot)
+ci_low <- quantile(post_samples$sigma, 0.025)
+ci_high <- quantile(post_samples$sigma, 0.975)
+
+plot +
+  geom_vline(aes(xintercept = ci_low, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = ci_high, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
+  geom_vline(aes(xintercept = map, color = "MAP"), linetype = 'dotted', linewidth = 1) +
+  scale_color_manual(name = "", values = c("red", "green"), labels = c("Credible Interval", "MAP")) +
+  theme(legend.position = "bottom")  # Set legend position to bottom
+```
+
 
 ## Comparing with OLS
 
+As a sniff test to validate our findings from the analysis above, traditional OLS was computed for the complete data set.
+
 ```{r, ols_model}
-
 data_all <- tq_get("AAPL", get = "stock.prices", from = "2013-01-01")
-
 data_all$lagged_close <- c(NA, head(data_all$close, -1))
-
 
 # OLS model
 fit_ols <- lm(data_all$close ~ data_all$lagged_close)
 summary(fit_ols)
-
 ```
+$$\textbf{Figure X.}\text{ OLS parameter estimates using complete data}  $$
+
+
+From the figure above, one can see that the intercept and the coefficient are close to the multiply imputed Bayesian regression results.
 
 ## Combining of Model Results
 
@@ -633,13 +742,13 @@ With the ACF plots shown in the above figure, the autocorrelation structure of t
 ### Histograms for the Difference of Original Data and Imputed Data
 
 ```{r}
-hist_gg(stocks, close_preamp - imp1, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 1", x_axis_label = "Difference")
+hist_gg(stocks, close_preamp - imp1, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 1", x_axis_label = "Difference", binwidth = .5)
 
-hist_gg(stocks, close_preamp - imp2, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 2", x_axis_label = "Difference")
+hist_gg(stocks, close_preamp - imp2, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 2", x_axis_label = "Difference", binwidth = .5)
 
-hist_gg(stocks, close_preamp - imp3, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 3", x_axis_label = "Difference")
+hist_gg(stocks, close_preamp - imp3, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 3", x_axis_label = "Difference", binwidth = .5)
 
-hist_gg(stocks, close_preamp - imp4, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 4", x_axis_label = "Difference")
+hist_gg(stocks, close_preamp - imp4, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 4", x_axis_label = "Difference", binwidth = .5)
 
 hist_gg(stocks, close_preamp - imp5, title = "Histogram of Difference of Original Data and Imputed Data (Imputed Data 1", x_axis_label = "Difference")
 ```
@@ -673,3 +782,28 @@ ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 5 and Original'
 ```
 
 
+## brms Readout
+
+```{r, bayesian_regression_model_fit_appendix, results = 'hide', message = FALSE, warning = FALSE}
+# Initialize an empty list to store the models
+fits <- vector("list", length = 5)
+
+# Fit a Bayesian regression model to each imputed dataset and check for errors
+for (i in seq_along(imp_datasets)) {
+  dataset <- imp_datasets[[i]]
+  # Create lag variable
+  dataset$lagged_close <- c(NA, head(dataset$close, -1))
+  fit <- tryCatch(
+    {
+      model <- brm(close ~ lagged_close, data = dataset,
+                   iter = 750, warmup = 500, chains = 2, prior = priors)
+      model # Return the model
+    },
+    error = function(e) {
+      cat(sprintf("Error in fitting model %d: %s\n", i, e$message))
+      NULL # Return NULL if there was an error
+    }
+  )
+  fits[[i]] <- fit
+}
+```
