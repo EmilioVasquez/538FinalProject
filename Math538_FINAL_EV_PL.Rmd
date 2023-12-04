@@ -475,7 +475,7 @@ Now that the bayesian regression model has been fit, one can now gather inferenc
 
 ```{r, posterior_intercept, warning = FALSE}
 # Extract posterior samples for the first fitted model
-post_samples <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close", "sigma"))
+post_samples1 <- posterior_samples(fits[[1]], pars = c("Intercept", "lagged_close", "sigma"))
 
 
 ### Talk to nik about...
@@ -542,12 +542,6 @@ ci_upper_combined <- Reduce("+", ci_upper) / length(fits)
 
 combined_results$ci_lower <- ci_lower_combined
 combined_results$ci_upper <- ci_upper_combined
-
-#print(combined_results)
-
-cat("point estimate for sigma: ", 100)
-cat("ci_lower for sigma: ", quantile(post_samples$sigma, 0.025))
-cat("ci_upper for sigma: ", quantile(post_samples$sigma, 0.975))
 ```
 
 
@@ -560,7 +554,7 @@ cat("ci_upper for sigma: ", quantile(post_samples$sigma, 0.975))
  \hline
  $\beta_1$ & 0.99943648  & 0.99766967 & 1.0011488\\
  \hline
- $\sigma$ & 88 & 2.508397 & 2.622535\\ [1ex] 
+ $\sigma$ & 2.56325 & 2.508397 & 2.622535\\ [1ex] 
  \hline
 \end{tabular}
 \end{center}
@@ -572,14 +566,15 @@ cat("ci_upper for sigma: ", quantile(post_samples$sigma, 0.975))
 #     xlab = "Intercept", col = "blue")
 
 density_gg(post_samples, b_Intercept, "Posterior of Intercept", expression(beta ~ 'Intercept')) +
-  geom_vline(xintercept = combined_results$ci_lower[1], color = "red", linetype = 'dotted') +
-  geom_vline(xintercept = combined_results$ci_upper[1], color = "red", linetype = 'dotted') +
-  geom_vline(xintercept = combined_results$Estimate[1],color = "green", linetype = 'dotted')
+  geom_vline(xintercept = combined_results$ci_lower[1], color = "red", linetype = 'dotted', linewidth = 1) +
+  geom_vline(xintercept = combined_results$ci_upper[1], color = "red", linetype = 'dotted', linewidth = 1) +
+  geom_vline(xintercept = combined_results$Estimate[1],color = "green", linetype = 'dotted', linewidth = 1)
+
 ```
 
+Add in interpretation for ha has
 
-
-```{r, intercept_samples_efv, echo = FALSE}
+```{r,intercept_samples_efv, echo = FALSE, eval = FALSE}
 # Histogram for the Intercept
 #hist(post_samples$b_Intercept, breaks = 30, main = "Posterior of #Intercept", 
 #     xlab = "Intercept", col = "blue")
@@ -599,9 +594,6 @@ post_plot +
 ```
 
 
-
-
-
 ```{r, posterior_lagged_return, echo = FALSE, message = FALSE, warning = FALSE}
 
 #hist(post_samples$b_lagged_close, breaks = 30, main = "Posterior of lagged_close", xlab = "lagged_close", col = "green") + 
@@ -611,10 +603,10 @@ density_gg(post_samples, b_lagged_close, "Posterior of Lagged Close", 'Lagged Cl
   geom_vline(xintercept = combined_results$ci_upper[2], color = "red", linetype = 'dotted', linewidth = 1) + 
   geom_vline(xintercept = combined_results$Estimate[2], color = "green", linetype = 'dotted', linewidth = 1)
 ```
+Add in interpretation for ha has
 
 
-
-```{r, lagged_return_samples_efv, echo = FALSE}
+```{r, lagged_return_samples_efv, echo = FALSE , eval = FALSE}
 plot <- density_gg(post_samples, b_lagged_close, "Posterior of Lagged Return", expression(beta ~ ' Lagged Close')) 
 
 
@@ -631,21 +623,12 @@ plot +
 ```
 
 
-```{r, sigma_post, echo = FALSE, warning = FALSE, message= FALSE}
-# Histogram for sigma
-#hist(post_samples$sigma, breaks = 30, main = "Posterior of Sigma", xlab = "Sigma", col = "red")
-
-density_gg(post_samples, sigma, expression('Posterior of' ~ sigma), expression(sigma ~ 'Posterior')) + geom_vline(xintercept = combined_results$ci_lower[1]) + geom_vline(xintercept = combined_results$ci_upper[1]) + 
-  geom_vline(xintercept = combined_results$Estimate[1])
-```
-
-
-
 ```{r, sigma_post_samples_efv, echo = FALSE}
-plot <- density_gg(post_samples, sigma, expression('Posterior Distribution of' ~ sigma), expression(sigma ~ 'Posterior')) 
+plot <- density_gg(post_samples1, sigma, expression('Posterior Distribution of' ~ sigma), expression(sigma ~ 'Posterior')) 
 map <- mode_density(plot)
-ci_low <- quantile(post_samples$sigma, 0.025)
-ci_high <- quantile(post_samples$sigma, 0.975)
+
+ci_low <- quantile(post_samples1$sigma, 0.025)
+ci_high <- quantile(post_samples1$sigma, 0.975)
 
 plot +
   geom_vline(aes(xintercept = ci_low, color = "Credible Interval"), linetype = 'dotted', linewidth = 1) +
@@ -654,7 +637,7 @@ plot +
   scale_color_manual(name = "", values = c("red", "green"), labels = c("Credible Interval", "MAP")) +
   theme(legend.position = "bottom")  # Set legend position to bottom
 ```
-
+Add in interpretation for ha has
 
 ## Comparing with OLS
 
@@ -701,11 +684,13 @@ The multi-step process provides a blueprint for principled missing data handling
 
 2. Little, Roderick. 2011. "Calibrated Bayes, for Statistics in General, and Missing Data in Particular." Statistical Science 26 (2): 162–74. https://doi.org/10.1214/10-STS318.
 
+3. Textbook
+
+4. Documentation
 
 # Appendix
 
 ## Additional Exploratory Data Analysis
-
 
 ### Raw Returns Analysis
 
