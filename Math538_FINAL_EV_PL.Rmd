@@ -54,7 +54,7 @@ library(VIM)
 \Large
 
 \doublespacing
-{\bf Bayesian Missing Data - Multiple Imputation Methods }
+{\bf Missing Data - Multiple Imputation Methods }
 
 \vspace{1 cm}
 
@@ -127,7 +127,7 @@ A key advantage of the Bayesian approach to multiple imputation is that it allow
 
 ## Missing Data
 
-Unlike working with data in a classroom setting, real-life data is messy and almost never "clean" out of the box. Often times one can have records that have non-uniform inputs captured. Maybe someone left in a free-form field for entering in a birthday so all the birthdays entered in by the users may all be in different formats. The biggest dilemma that many data professionals will face in their data science careers is the missing data. Perhaps a survey respondent forgot to answer a few questions because it either did not relate to them or they just forgot to answer it. The nature of missing data can come in the following three flavors:
+Unlike working with data in a classroom setting, real-life data is messy and almost never "clean" out of the box. Often times one can have records that have non-uniform inputs captured. Maybe someone left in a free-form field for entering in a birthday so all the birthdays entered in by the users may all be in different formats. The biggest dilemma that many data professionals will face in their data science careers is missing data. Perhaps a survey respondent forgot to answer a few questions because it either did not relate to them or they just forgot to answer it. The nature of missing data can come in the following three flavors:
 
 ### Missing Completely At Random (MCAR)
 
@@ -135,7 +135,7 @@ Missing data can come in the form of missing completely at random. This is when 
 
 ### Missing at Random (MAR)
 
-Missing at random is when the rate of missing data can be explained if one knew of some other factor. Missing data is common in financial datasets especially due to non-response on surveys or forms. For example, customers may not fill out all the fields on a loan application or investors may skip questions on an investment risk tolerance questionnaire. However, this missing data might be able to be explained by some other question that they answered on the survey, perhaps maybe on occupation. So in theory if one observed that customers who happened to be teachers skipped questions at a higher rate than those who are not teachers, this missing data could be solved by knowing the occupation.
+Missing at random is when the rate of missing data can be explained if one knew of some other factor. Missing data is common in financial datasets especially due to non-response on surveys or forms. For example, customers may not fill out all the fields on a loan application or investors may skip questions on an investment risk tolerance questionnaire. However, this missing data might be able to be explained by some other question that they answered on the survey, perhaps maybe on occupation. So in theory if one observed that customers who happened to be teachers skipped questions at a higher rate than those who are not teachers, this missing data could be solved by knowing the respondent's occupation.
 
 
 ### Missing Not At random (MNAR)
@@ -144,7 +144,7 @@ Missing not at random is when the missing data is related to the variable of int
 
 For the types of missing data above, it becomes imperative for a data scientist or statistician to have tools to overcome the obstacle of missing data. Up to this point, there are already two solid approaches; removing records entirely for those that have missing data as well as applying the EM algorithm.
 
-With removing entire rows of data, this might be an excellent and easy strategy to implement if dealing with a large dataset. Removing 2,000 rows of data from 2,000,000 rows will not affect the analysis all that much if at all.  Working with a small dataset, throwing out incomplete data could result in losing valuable information and bring potential biases into any estimates provided to a stakeholder. The next approach is to apply the expectation maximization (EM) algorithm where one replaces NAs with the conditional average. The details on a third method now follow.
+With removing entire rows of data, this might be an excellent and easy strategy to implement if dealing with a large dataset. Removing 2,000 rows of data from 2,000,000 rows will not affect the analysis or inference all that much if at all.  Working with a small dataset (think 100 or less rows), throwing out incomplete data could result in losing valuable information and bring potential biases into any estimates provided to a stakeholder. The next approach is to apply the expectation maximization (EM) algorithm where one replaces NAs with the conditional average. The details on a third method now follow.
 
 
 \newpage
@@ -172,7 +172,7 @@ $$\hat{Y} = f(X;\theta), \text{ where }\theta\text{ are the estimated parameters
 
 ii) For a missing $Y_i$, we find the set of cases(called donors in the package) $D_i$ where $\hat{Y_d} \in D_i$ are closest to $\hat{Y_i}$.
 
-iii) Randomly select a $Y_d$ from $D_i$ to impute $Y_i$. There is the option to do a straight imputation or choose n $Y_d$ and take an average. Straight imputation was performed in this analysis and the selection from this set D gives each candidate an equal chance of being selected. Upon exploring the mice documentation, this probability process was akin to a uniform probability distribution over the pool of potential donors. 
+iii) Randomly select a $Y_d$ from $D_i$ to impute $Y_i$. There is the option to do a straight imputation or choose n $Y_d$ and take an average. Straight imputation was performed in this analysis and the selection from this set D gives each candidate an equal chance of being selected. Upon exploring the 'mice' documentation, this probability process was akin to a uniform probability distribution over the pool of potential donors. 
 
 The PMM method is a standalone, non-Bayesian imputation method. The imputed datasets generated are then used further using Bayesian methods in this project.  By creating multiple imputations, `mice` acknowledges and represents the uncertainty inherent in the imputation process. Upon creating multiple imputed datasets, one now can apply whatever modeling technique they are interested in. In this implemntation, the next step was a Bayesian Regression Model.
 
@@ -333,6 +333,8 @@ The mice::ampute function artificially introduces missing values into the datase
 
 * The mech argument specifies the missingness mechanism as 'MAR' (Missing At Random)
 
+Performing a data amputation simulation like this allows one to verify how well one's imputation performs under different assumptions of missing data.
+
 ```{r, data amputation}
 # Introduce missing values
 amputed_data <- mice::ampute(stocks_for_ampute, prop = 0.3, mech = "MAR")
@@ -361,7 +363,7 @@ In the above figure, one can visually see how the 'mice' package amputated the d
 
 ## Data Imputation via Predictive Mean Matching
 
-The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices. Multiple imputed datasets are generated (specified by m = 5) to account for the uncertainty of the imputation process.
+The `mice` function is used to impute missing values in the dataset. It uses Predictive Mean Matching ('pmm') method to fill in missing 'close' prices by default. Here it is specified in the interest of readability. Multiple imputed datasets are generated (specified by m = 5) to account for the uncertainty of the imputation process. Lastly, the 5 imputed datasets are extracted using the 'complete' function from within 'mice'.
 
 ```{r, data_imputation_chunk}
 # Impute missing values using Predictive Mean Matching
@@ -378,15 +380,13 @@ imputed <- mice(data = stock_subset,
 
 # Extract imputed datasets
 imp_datasets <- lapply(1:5, function(i) complete(imputed, i))
-
-#View(imp_datasets)
 ```
 
 The readouts from this block of code were omitted in an effort to improve readability, but can be viewed within the appendix of this report.
 
 ### Analyzing imputed Data
 
-First, we will add the results of the 5 imputed datasets back into the main 'stocks' dataframe to allow futher analysis of the imputed data.
+First, we will add the results of the 5 imputed datasets back into the main 'stocks' dataframe to allow further analysis of the imputed data.
 
 ```{r}
 stocks$imp1 <- imp_datasets[[1]]$close
@@ -409,7 +409,7 @@ hist_gg(diff_combined, diff_combined, title = "Difference of Original Data and I
 ```
 
 $$\textbf{Figure 3.}\text{ Histogram of the difference of the actual close price vs the imputed data points}  $$
-Figure 3 shows the difference from the original score vs the imputed score for all 5 multiply imputed datasets combined into one visualization. As one can see, the vast majority of points had a very small difference between the actual and the imputed. There were a few outliers that had imputed a value greater than \$20 but overall the imputation was a success. The appendix hosts histograms of differences for all 5 data sets individually.
+Figure 3 shows the difference from the original close vs the imputed close for all 5 multiply imputed datasets combined into one visualization. As one can see, the vast majority of points had a very small difference between the actual and the imputed. There were a few outliers that had imputed a value greater than \$20 but overall the imputation was a success. The appendix hosts histograms of differences for all 5 data sets individually.
 
 ```{r, echo = FALSE, message = FALSE, warning=FALSE}
 ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 3 and Original') + geom_line(aes(x = date, y= imp3, color = "imputed"), linetype = 'dotted') +
@@ -421,7 +421,7 @@ ts_line(stocks, "date", "close_preamp", title = 'Imputed Dataset 3 and Original'
 
 $$\textbf{Figure 4.}\text{ Imputed results for dataset 3 overlayed the actual close price }  $$
 
-Figure 4 shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists imputed results where the difference was actually smaller and worse than this. The other 4 imputed dataset results can be viewed in the appendix.
+Figure 4 shows the original data overlayed with the imputed data results for the third imputed dataset. The third dataset happened to be the imputed dataset with the absolute difference between the actual data and the imputed dataset being the third largest. This means there exists imputed results where the difference was actually smaller as well as worse than this. The other 4 imputed dataset results can be viewed in the appendix. Overall however, dataset 3 followed the close price well on it's own.
 
 
 ## Bayesian Regression Model
@@ -485,7 +485,6 @@ Now that the bayesian regression model has been fit, one can now gather inferenc
 post_samples1 <- posterior_samples(fits[[1]], pars = c("Intercept",
                                                        "lagged_close",
                                                        "sigma"))
-
 
 post_samples <- as.data.frame(rbind(posterior_samples(fits[[1]],
                                                       pars = c("Intercept",
@@ -669,7 +668,7 @@ The mice::ampute function is crucial because it enables researchers to understan
 
 This analysis demonstrated a Bayesian approach for handling missing data, specifically using multiple imputation to fill gaps while quantifying uncertainty. The 'mice' R package enabled missing data simulation on the AAPL stock dataset. Five imputed complete datasets were then generated using predictive mean matching. Bayesian regression models were fitted to predict daily returns based on prior day returns, combining prior beliefs about the coefficients with likelihood from the observed data to estimate posterior distributions. Hamilton Monte Carlo sampling enabled convenient fitting of the posteriors. Parameter estimates were finally pooled across the multiple imputations to obtain overall inference, incorporating missing data uncertainty.
 
-The multi-step process provides a blueprint for principled missing data handling - imputing while preserving relationships in the data, fitting appropriate Bayesian models, and aggregating estimates for final inference. The methodology can generalize across applications with missing observations, from financial time series forecasting to political polls, epidemiology, econometrics, or climate data analysis. The multiple imputation framework allows proceeding with modeling and prevents relying only on complete cases. Use of MCMC sampling handles high-dimensional posteriors despite analytic intractability. Thus Bayesian missing data techniques serve as broadly applicable tools for overcoming an omnipresent analysis challenge to enable robust modeling from incomplete real-world data. Missing data is bound to come across an analyst's desk so the more tools they have at their disposal to work with missing data, the better the data analysis and inference can be performed. 
+The multi-step process provides a blueprint for principled missing data handling - imputing while preserving relationships in the data, fitting appropriate Bayesian models, and aggregating estimates for final inference. The methodology can generalize across applications with missing observations, from financial time series forecasting to political polls, epidemiology, econometrics, or climate data analysis. The multiple imputation framework allows proceeding with modeling and prevents relying only on complete cases. Use of MCMC sampling handles high-dimensional posteriors despite analytic intractability. Thus Bayesian missing data techniques serve as broadly applicable tools for overcoming an omnipresent analysis challenge to enable robust modeling from incomplete real-world data. Missing data is bound to come across an analyst's desk so the more tools they have at their disposal to work with missing data, the better the data analysis and inference can be delivered. 
 
 \newpage
 
@@ -696,7 +695,6 @@ The multi-step process provides a blueprint for principled missing data handling
 ## Additional Exploratory Data Analysis
 
 ### Raw Returns Analysis
-.
 
 ```{r, raw return analysis}
 
